@@ -1,0 +1,116 @@
+<%= form_for @shop, :html => { :class => "form-horizontal shop" } do |f| %>
+
+  <% if @shop.errors.any? %>
+    <div id="error_expl" class="panel panel-danger">
+      <div class="panel-heading">
+        <h3 class="panel-title"><%= pluralize(@shop.errors.count, "error") %> prohibited this shop from being saved:</h3>
+      </div>
+      <div class="panel-body">
+        <ul>
+        <% @shop.errors.full_messages.each do |msg| %>
+          <li><%= msg %></li>
+        <% end %>
+        </ul>
+      </div>
+    </div>
+  <% end %>
+
+  <div class="form-group">
+    <%= f.label :name, :class => 'control-label col-lg-2' %>
+    <div class="col-lg-10">
+      <%= f.text_field :name, :class => 'form-control' %>
+    </div>
+    <%=f.error_span(:name) %>
+  </div>
+  <div class="form-group">
+    <%= f.label :address, :class => 'control-label col-lg-2' %>
+    <div class="col-lg-10">
+     <%= f.text_field :address, class: "form-control input-lg", "aria-describedby" => "basic-addon2", id: "autocomplete", placeholder: "Search shops by location",
+             onFocus: "geolocate()" %>
+    </div>
+    <%=f.error_span(:address) %>
+  </div>
+  <div class="form-group">
+    
+    <div class="col-lg-10">
+      <%= f.hidden_field :latitude, :class => 'form-control' %>
+    </div>
+    <%=f.error_span(:latitude) %>
+  </div>
+  <div class="form-group">
+    
+    <div class="col-lg-10">
+      <%= f.hidden_field :longitude, :class => 'form-control' %>
+    </div>
+    <%=f.error_span(:longitude) %>
+  </div>
+
+  <div class="form-group">
+    <div class="col-lg-offset-2 col-lg-10">
+      <%= f.submit nil, :class => 'btn btn-primary' %>
+      <%= link_to t('.cancel', :default => t("helpers.links.cancel")),
+                shops_path, :class => 'btn btn-default' %>
+    </div>
+  </div>
+
+<% end %>
+
+
+<script>
+  var placeSearch, autocomplete;
+  var componentForm = {
+    street_number: 'short_name',
+    route: 'long_name',
+    locality: 'long_name',
+    administrative_area_level_1: 'short_name',
+    country: 'long_name',
+    postal_code: 'short_name',
+  };
+
+  function initAutocomplete() {
+    autocomplete = new google.maps.places.Autocomplete(
+      (document.getElementById('autocomplete')),
+        {types: ['geocode']});
+
+    autocomplete.addListener('place_changed', fillInAddress);
+  }
+
+  function fillInAddress() {
+    var place = autocomplete.getPlace();
+    lat = place.geometry.location.lat();
+    long = place.geometry.location.lng();
+    $("#shop_latitude").val(lat);
+    $("#shop_longitude").val(long);
+
+    for (var component in componentForm) {
+      document.getElementById(component).value = '';
+      document.getElementById(component).disabled = false;
+    }
+    for (var i = 0; i < place.address_components.length; i++) {
+      var addressType = place.address_components[i].types[0];
+      if (componentForm[addressType]) {
+        var val = place.address_components[i][componentForm[addressType]];
+        document.getElementById(addressType).value = val;
+      }
+    }
+  }
+  
+  function geolocate() {
+    if (navigator.geolocation) {
+      navigator.geolocation.getCurrentPosition(function(position) {
+        var geolocation = {
+          lat: position.coords.latitude,
+          lng: position.coords.longitude
+        };
+        var circle = new google.maps.Circle({
+          center: geolocation,
+          radius: position.coords.accuracy
+        });
+        autocomplete.setBounds(circle.getBounds());
+      });
+    }
+  }
+</script>
+<script src="https://maps.googleapis.com/maps/api/js?key=AIzaSyCCGG6jVWyZDiUH3DD6YQLxGcmLlP5V6FA&libraries=places&callback=initAutocomplete"
+        async defer></script>
+<br>

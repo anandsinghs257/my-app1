@@ -1,0 +1,49 @@
+<% @near_by_shops.each do |shop| %>  
+<h6><%= shop.name %></h6>
+<h6><%= shop.address %></h6>
+<%= link_to shop_path(shop), class: "btn btn-primary" do %>show
+<i class="fa fa-eye"></i>
+<% end %>
+ <% end %>
+ 
+
+
+ <div class="col-md-5">
+      <div id="map" style="width:100%;height:500px;"></div>
+    </div>
+  </div>
+</div>
+
+ <script type="text/javascript" src="http://maps.googleapis.com/maps/api/js?key=AIzaSyAC1cqAmyA4B5g45X12AYT61H3XLUzUQxs"></script> 
+
+ <script type="text/javascript">
+  var locations = [];
+
+  <% @near_by_shops.each do |shop| %>
+    locations.push(["<%= shop.name %>", <%= shop.latitude %>, <%= shop.longitude %>])
+  <% end %>
+
+  var map = new google.maps.Map(document.getElementById('map'), {
+    zoom: 11,
+    center: new google.maps.LatLng(locations[0][1], locations[0][2]),
+    mapTypeId: google.maps.MapTypeId.ROADMAP
+  });
+
+  var infowindow = new google.maps.InfoWindow();
+
+  var marker, i;
+
+  for (i = 0; i < locations.length; i++) {  
+    marker = new google.maps.Marker({
+      position: new google.maps.LatLng(locations[i][1], locations[i][2]),
+      map: map
+    });
+
+    google.maps.event.addListener(marker, 'click', (function(marker, i) {
+      return function() {
+        infowindow.setContent(locations[i][0]);
+        infowindow.open(map, marker);
+      }
+    })(marker, i));
+  }
+</script>
